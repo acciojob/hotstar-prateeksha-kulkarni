@@ -9,8 +9,6 @@ import javax.persistence.ManyToOne;
 
 public class WebSeriesEntryDto {
 
-    private Integer id;
-
     private String seriesName;
 
     private int ageLimit;
@@ -21,21 +19,12 @@ public class WebSeriesEntryDto {
 
     private Integer productionHouseId;
 
-    public WebSeriesEntryDto(Integer id, String seriesName, int ageLimit, double rating, SubscriptionType subscriptionType, Integer productionHouseId) {
-        this.id = id;
+    public WebSeriesEntryDto(String seriesName, int ageLimit, double rating, SubscriptionType subscriptionType, Integer productionHouseId) {
         this.seriesName = seriesName;
         this.ageLimit = ageLimit;
         this.rating = rating;
         this.subscriptionType = subscriptionType;
         this.productionHouseId = productionHouseId;
-    }
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
     }
 
     public String getSeriesName() {

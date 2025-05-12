@@ -3,6 +3,8 @@ package com.driver.model;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -13,6 +15,7 @@ import javax.persistence.Table;
 public class WebSeries {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
     @Column(unique = true)
@@ -28,8 +31,7 @@ public class WebSeries {
     @JoinColumn
     private ProductionHouse productionHouse;
 
-    public WebSeries(int id, String seriesName, int ageLimit, double rating, SubscriptionType subscriptionType) {
-        this.id = id;
+    public WebSeries(String seriesName, int ageLimit, double rating, SubscriptionType subscriptionType) {
         this.seriesName = seriesName;
         this.ageLimit = ageLimit;
         this.rating = rating;
