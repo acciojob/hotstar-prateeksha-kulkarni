@@ -22,30 +22,29 @@ public class WebSeriesService {
         if (webSeriesRepository.findBySeriesName(webSeriesEntryDto.getSeriesName()) != null) {
             throw new Exception("Series is already present");
         }
-        
+        // Check if id already exists
+        if (webSeriesRepository.findById(webSeriesEntryDto.getId()).isPresent()) {
+            throw new Exception("item with this id already exists");
+        }
         // Get production house
         ProductionHouse productionHouse = productionHouseRepository.findById(webSeriesEntryDto.getProductionHouseId())
             .orElseThrow(() -> new Exception("Production house not found"));
-            
-        // Create new web series
+        // Create new web series with user-provided id
         WebSeries webSeries = new WebSeries(
+            webSeriesEntryDto.getId(),
             webSeriesEntryDto.getSeriesName(),
             webSeriesEntryDto.getAgeLimit(),
             webSeriesEntryDto.getRating(),
             webSeriesEntryDto.getSubscriptionType()
         );
-        
         // Set bidirectional relationship
         webSeries.setProductionHouse(productionHouse);
         productionHouse.getWebSeriesList().add(webSeries);
-        
         // Update production house rating
         updateProductionHouseRating(productionHouse);
-        
         // Save both entities
         productionHouseRepository.save(productionHouse);
         webSeriesRepository.save(webSeries);
-        
         return webSeries.getId();
     }
     
