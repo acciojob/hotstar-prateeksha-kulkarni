@@ -23,4 +23,8 @@ public class ProductionHouseService {
         
         return savedProductionHouse.getId();
     }
+
+    public Integer addProductionHouseToDb(ProductionHouseEntryDto productionHouseEntryDto) throws Exception {
+        return addProductionHouse(productionHouseEntryDto);
+    }
 }
