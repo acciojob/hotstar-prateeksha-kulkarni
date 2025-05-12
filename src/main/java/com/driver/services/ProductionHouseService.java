@@ -1,6 +1,5 @@
 package com.driver.services;
 
-
 import com.driver.EntryDto.ProductionHouseEntryDto;
 import com.driver.model.ProductionHouse;
 import com.driver.repository.ProductionHouseRepository;
@@ -13,11 +12,15 @@ public class ProductionHouseService {
     @Autowired
     ProductionHouseRepository productionHouseRepository;
 
-    public Integer addProductionHouseToDb(ProductionHouseEntryDto productionHouseEntryDto){
-
-        return  null;
+    public Integer addProductionHouse(ProductionHouseEntryDto productionHouseEntryDto) throws Exception {
+        // Check if production house with same name exists
+        if (productionHouseRepository.findByName(productionHouseEntryDto.getName()) != null) {
+            throw new Exception("Production house already exists");
+        }
+        
+        ProductionHouse productionHouse = new ProductionHouse(productionHouseEntryDto.getName());
+        ProductionHouse savedProductionHouse = productionHouseRepository.save(productionHouse);
+        
+        return savedProductionHouse.getId();
     }
-
-
-
 }

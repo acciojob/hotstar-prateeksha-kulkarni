@@ -22,28 +22,91 @@ public class SubscriptionService {
     @Autowired
     UserRepository userRepository;
 
-    public Integer buySubscription(SubscriptionEntryDto subscriptionEntryDto){
-
-        //Save The subscription Object into the Db and return the total Amount that user has to pay
-
-        return null;
+    public Integer buySubscription(SubscriptionEntryDto subscriptionEntryDto) {
+        // Get the user
+        User user = userRepository.findById(subscriptionEntryDto.getUserId()).get();
+        
+        // Calculate total amount based on subscription type and number of screens
+        int totalAmount = calculateSubscriptionAmount(
+            subscriptionEntryDto.getSubscriptionType(),
+            subscriptionEntryDto.getNoOfScreensRequired()
+        );
+        
+        // Create new subscription
+        Subscription subscription = new Subscription(
+            subscriptionEntryDto.getSubscriptionType(),
+            subscriptionEntryDto.getNoOfScreensRequired(),
+            new Date(),
+            totalAmount
+        );
+        
+        // Set bidirectional relationship
+        subscription.setUser(user);
+        user.setSubscription(subscription);
+        
+        // Save subscription
+        subscriptionRepository.save(subscription);
+        
+        return totalAmount;
     }
 
-    public Integer upgradeSubscription(Integer userId)throws Exception{
-
-        //If you are already at an ElITE subscription : then throw Exception ("Already the best Subscription")
-        //In all other cases just try to upgrade the subscription and tell the difference of price that user has to pay
-        //update the subscription in the repository
-
-        return null;
+    public Integer upgradeSubscription(Integer userId) throws Exception {
+        User user = userRepository.findById(userId).get();
+        Subscription currentSubscription = user.getSubscription();
+        
+        if (currentSubscription == null) {
+            throw new Exception("No subscription found for user");
+        }
+        
+        if (currentSubscription.getSubscriptionType() == SubscriptionType.ELITE) {
+            throw new Exception("Already the best Subscription");
+        }
+        
+        // Calculate new subscription type
+        SubscriptionType newType = currentSubscription.getSubscriptionType() == SubscriptionType.BASIC ? 
+            SubscriptionType.PRO : SubscriptionType.ELITE;
+            
+        // Calculate price difference
+        int currentAmount = currentSubscription.getTotalAmountPaid();
+        int newAmount = calculateSubscriptionAmount(newType, currentSubscription.getNoOfScreensSubscribed());
+        int priceDifference = newAmount - currentAmount;
+        
+        // Update subscription
+        currentSubscription.setSubscriptionType(newType);
+        currentSubscription.setTotalAmountPaid(newAmount);
+        subscriptionRepository.save(currentSubscription);
+        
+        return priceDifference;
     }
 
-    public Integer calculateTotalRevenueOfHotstar(){
-
-        //We need to find out total Revenue of hotstar : from all the subscriptions combined
-        //Hint is to use findAll function from the SubscriptionDb
-
-        return null;
+    public Integer calculateTotalRevenueOfHotstar() {
+        List<Subscription> allSubscriptions = subscriptionRepository.findAll();
+        return allSubscriptions.stream()
+            .mapToInt(Subscription::getTotalAmountPaid)
+            .sum();
     }
-
+    
+    private int calculateSubscriptionAmount(SubscriptionType type, int noOfScreens) {
+        int baseAmount;
+        int perScreenAmount;
+        
+        switch (type) {
+            case BASIC:
+                baseAmount = 500;
+                perScreenAmount = 200;
+                break;
+            case PRO:
+                baseAmount = 800;
+                perScreenAmount = 250;
+                break;
+            case ELITE:
+                baseAmount = 1000;
+                perScreenAmount = 350;
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid subscription type");
+        }
+        
+        return baseAmount + (perScreenAmount * noOfScreens);
+    }
 }

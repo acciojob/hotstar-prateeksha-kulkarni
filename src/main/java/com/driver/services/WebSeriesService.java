@@ -17,14 +17,49 @@ public class WebSeriesService {
     @Autowired
     ProductionHouseRepository productionHouseRepository;
 
-    public Integer addWebSeries(WebSeriesEntryDto webSeriesEntryDto)throws  Exception{
-
-        //Add a webSeries to the database and update the ratings of the productionHouse
-        //Incase the seriesName is already present in the Db throw Exception("Series is already present")
-        //use function written in Repository Layer for the same
-        //Dont forget to save the production and webseries Repo
-
-        return null;
+    public Integer addWebSeries(WebSeriesEntryDto webSeriesEntryDto) throws Exception {
+        // Check if series already exists
+        if (webSeriesRepository.findBySeriesName(webSeriesEntryDto.getSeriesName()) != null) {
+            throw new Exception("Series is already present");
+        }
+        
+        // Get production house
+        ProductionHouse productionHouse = productionHouseRepository.findById(webSeriesEntryDto.getProductionHouseId())
+            .orElseThrow(() -> new Exception("Production house not found"));
+            
+        // Create new web series
+        WebSeries webSeries = new WebSeries(
+            webSeriesEntryDto.getSeriesName(),
+            webSeriesEntryDto.getAgeLimit(),
+            webSeriesEntryDto.getRating(),
+            webSeriesEntryDto.getSubscriptionType()
+        );
+        
+        // Set bidirectional relationship
+        webSeries.setProductionHouse(productionHouse);
+        productionHouse.getWebSeriesList().add(webSeries);
+        
+        // Update production house rating
+        updateProductionHouseRating(productionHouse);
+        
+        // Save both entities
+        productionHouseRepository.save(productionHouse);
+        webSeriesRepository.save(webSeries);
+        
+        return webSeries.getId();
     }
-
+    
+    private void updateProductionHouseRating(ProductionHouse productionHouse) {
+        if (productionHouse.getWebSeriesList().isEmpty()) {
+            productionHouse.setRatings(0.0);
+            return;
+        }
+        
+        double averageRating = productionHouse.getWebSeriesList().stream()
+            .mapToDouble(WebSeries::getRating)
+            .average()
+            .orElse(0.0);
+            
+        productionHouse.setRatings(averageRating);
+    }
 }
